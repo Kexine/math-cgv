@@ -6,7 +6,7 @@ import scipy.spatial
 if __name__ == "__main__":
 
     # choose file to be calculated for each algorithm
-    file_index = 1
+    file_index = 4
 
     # suggested parameters
     V_abs = 1
@@ -51,6 +51,10 @@ if __name__ == "__main__":
     axes[1, 0].set_title("FPO")
     axes[1, 1].plot(results[:, 3])
     axes[1, 1].set_title("Matern")
+
+    for ax in axes.ravel():
+        ax.set_ylim(ymin=0)
+
     plt.tight_layout()
     plt.show()
     print()
