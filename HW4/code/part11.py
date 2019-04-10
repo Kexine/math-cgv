@@ -10,14 +10,14 @@ if __name__ == "__main__":
     algorithms = ["Balzer", "Dart", "FPO", "Matern"]
     n_algoritms = algorithms.__len__()
 
-    periodograms = np.zeros((image_height, image_width, 10, 4))
+    periodograms = np.zeros((image_height, image_width, 10, n_algoritms))
 
     for algorithm_index in range(0, n_algoritms):
         algorithm = algorithms[algorithm_index]
-        for file_index in range(1, 11):
+        for file_index in range(0, 10):
             initial_image = np.zeros((image_height, image_width))
 
-            filename = "../PART I/Data/" + algorithm + "/" + str(file_index) + ".txt"
+            filename = "../PART I/Data/" + algorithm + "/" + str(file_index+1) + ".txt"
             data = np.loadtxt(filename)
             data[:, 0] = np.floor(data[:, 0] * image_width)
             data[:, 1] = np.floor(data[:, 1] * image_height)
@@ -29,7 +29,7 @@ if __name__ == "__main__":
                 j = point[0]
                 initial_image[i, j] = initial_image[i, j] + 1/n
 
-            periodograms[:, :, file_index-1, algorithm_index] = np.square(np.abs(np.fft.fftshift(np.fft.fft2(initial_image))))
+            periodograms[:, :, file_index, algorithm_index] = np.square(np.abs(np.fft.fftshift(np.fft.fft2(initial_image))))
 
     periodograms_averaged = np.mean(periodograms, 2)
 
