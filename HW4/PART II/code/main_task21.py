@@ -1,8 +1,6 @@
 import numpy as np
-from graph_cut import GraphCut
+from graph_cut import *
 from itertools import combinations
-###
-
 
 def get_pairwises(adj):
     n = np.size(adj, 0)
@@ -10,7 +8,8 @@ def get_pairwises(adj):
 
     edge_relations = []
     for i, j in pairs:
-        edge_relations.append([i, j, adj[i, i], adj[i, j], adj[j, i], adj[j, j]])
+        edge_relations.append([i, j, 0, adj[i, j], 0, 0])
+        edge_relations.append([j, i, 0, adj[j, i], 0, 0])
 
     return np.asarray(edge_relations)
 
