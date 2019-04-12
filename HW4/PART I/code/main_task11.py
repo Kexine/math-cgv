@@ -17,7 +17,7 @@ if __name__ == "__main__":
         for file_index in range(0, 10):
             initial_image = np.zeros((image_height, image_width))
 
-            filename = "../PART I/Data/" + algorithm + "/" + str(file_index+1) + ".txt"
+            filename = "../data/" + algorithm + "/" + str(file_index+1) + ".txt"
             data = np.loadtxt(filename)
             data[:, 0] = np.floor(data[:, 0] * image_width)
             data[:, 1] = np.floor(data[:, 1] * image_height)

@@ -1,9 +1,7 @@
-from src.graph_cut_controller import GraphCutController
+from graph_cut_controller import GraphCutController
 
+if __name__ == '__main__':
 
-def main():
     GraphCutController()
 
 
-if __name__ == '__main__':
-    main()

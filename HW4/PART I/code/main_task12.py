@@ -25,7 +25,7 @@ if __name__ == "__main__":
 
     for algorithm_index in range(0, n_algoritms):
         algorithm = algorithms[algorithm_index]
-        filename = "../PART I/Data/" + algorithm + "/" + str(file_index) + ".txt"
+        filename = "../data/" + algorithm + "/" + str(file_index) + ".txt"
         data = np.loadtxt(filename)
         N = np.size(data, 0)
         r_max = np.sqrt(1/(2*np.sqrt(3)*N))  # (Lagae and Dutre, 2008) or (Gamito and Maddock, 2009 for n=2)
