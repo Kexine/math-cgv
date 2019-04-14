@@ -55,6 +55,7 @@ class GraphCutController:
         :param seed_bg: pixels marked as background by the user
         :return: unaries : Nx2 numpy array containing the unary cost for every pixels in I (N = number of pixels in I)
         """
+        print("Calcuating unaries...")
         hist_step = 255.0 / 32.0
         image_rows = np.size(image, 0)
         image_cols = np.size(image, 1)
@@ -92,7 +93,6 @@ class GraphCutController:
         :param sigma: ad-hoc cost function parameter
         :return: pairwise : ivj (triplet or coo) formatted list of lists containing the pairwise costs for image
         """
-
         def get_neighbours(i, j, image_rows, image_cols):
             neighbours = np.array([[i - 1, j - 1],  # upper left
                                    [i - 1, j],  # upper
@@ -112,6 +112,8 @@ class GraphCutController:
 
             return neighbours[valid, :]
 
+        print("Calcuating pairwises...")
+
         image_rows = np.size(image, 0)
         image_cols = np.size(image, 1)
 
@@ -120,17 +122,17 @@ class GraphCutController:
             for j in range(0, image_cols):
                 current_coordinates = np.array([i, j])
                 current_index = i * image_cols + j
-                current_pixel = image[i, j]
+                current_pixel = image[i, j].astype(float)
                 neighbour_coordinates = get_neighbours(i, j, image_rows, image_cols)
                 neighbour_indices = neighbour_coordinates[:, 0] * image_cols + neighbour_coordinates[:, 1]
-                neighbour_pixels = image[neighbour_coordinates[:, 0], neighbour_coordinates[:, 1]]
+                neighbour_pixels = image[neighbour_coordinates[:, 0], neighbour_coordinates[:, 1]].astype(float)
 
-                pixel_differences = neighbour_pixels - current_pixel
-                pixel_differences = np.linalg.norm(pixel_differences, axis=1)
+                pixel_differences = np.subtract(neighbour_pixels, current_pixel)
+                pixel_distances = np.linalg.norm(pixel_differences, axis=1)
                 spatial_differences = current_coordinates - neighbour_coordinates
                 spatial_differences = np.linalg.norm(spatial_differences, axis=1)
 
-                neighbour_costs = np.divide(np.exp(-np.square(pixel_differences) / 2 * np.square(sigma)),
+                neighbour_costs = np.divide(np.exp(-np.square(pixel_distances) / (2 * np.square(sigma))),
                                             spatial_differences)
 
                 for k in range(0, np.size(neighbour_indices.ravel())):
@@ -138,7 +140,12 @@ class GraphCutController:
                     cost = neighbour_costs[k]
                     pairwise.append([current_index, neighbour_index, 0, cost, 0, 0])
 
-        return np.asarray(pairwise)
+                if current_index%1000 == 0:
+                    print(current_index, '/', image_rows*image_cols)
+
+
+        pairwise = np.asarray(pairwise)
+        return pairwise
 
 
     # TODO TASK 2.4 get segmented image to the view
@@ -154,8 +161,9 @@ class GraphCutController:
         image_rows = np.size(image, 0)
         image_cols = np.size(image, 1)
 
+        not_labels = np.logical_not(labels)
         mask = np.zeros((image_rows, image_cols, 3), dtype=np.uint8)
-        mask[np.logical_not(labels), :] = np.array([255, 0, 0], dtype=np.uint8)
+        mask[not_labels, :] = np.array([255, 0, 0], dtype=np.uint8)
         mask[labels, :] = np.array([0, 0, 255])
 
         image_PIL = Image.fromarray(image)
@@ -163,7 +171,16 @@ class GraphCutController:
         result_PIL = Image.blend(image_PIL, mask_PIL, 0.6)
 
         segmented_image = np.array(result_PIL)
-        segmented_image_with_background = None
+
+        if background is not None:
+            mask = np.zeros((image_rows, image_cols), dtype=np.bool)
+            mask[np.logical_not(labels)] = np.bool(1)
+            result = np.copy(background[0:image_rows, 0:image_cols, :])
+            result.setflags(write=1)
+            result[not_labels, 0:3] = image[not_labels, 0:3]
+            segmented_image_with_background = result
+        else:
+            segmented_image_with_background = None
 
         return segmented_image, segmented_image_with_background
 
@@ -171,6 +188,7 @@ class GraphCutController:
         image_array = np.asarray(image)
         background_array = None
         if background:
+            background = background.convert("RGB")
             background_array = np.asarray(background)
         seed_fg = np.array(seed_fg)
         seed_bg = np.array(seed_bg)
