@@ -20,7 +20,7 @@ def main():
     test_data_path = '../dataset/test'
 
     # Read the data
-    train_dataset = Dataset(train_data_path)
+    train_dataset = Dataset(train_data_path, is_training_set=True)
     val_dataset   = Dataset(val_data_path)
     test_dataset  = Dataset(test_data_path)
 

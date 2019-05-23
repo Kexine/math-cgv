@@ -52,7 +52,7 @@ class Model:
 
         self.model_discriminator_graph.compile(
             loss='binary_crossentropy',
-            optimizer=optimizers.Adam(lr=1.0e-4),
+            optimizer=optimizers.Adam(lr=Config.learning_rate),
             loss_weights=[0.001]
         )
 
@@ -69,7 +69,7 @@ class Model:
         )
 
         self.model.compile(
-            optimizer=optimizers.Adam(lr=1.0e-4),
+            optimizer=optimizers.Adam(lr=Config.learning_rate),
             loss=[self.reconstruction_loss, 'binary_crossentropy'],
             loss_weights=[0.999, 0.001]
         )
@@ -89,6 +89,9 @@ class Model:
             a = layers.BatchNormalization()(a)
             a = layers.LeakyReLU()(a)
             a = layers.MaxPool2D(pool_size=(2, 2))(a)
+
+            if Config.use_spatial_dropout:
+                a = layers.SpatialDropout2D(rate=Config.spatial_dropout_rate)(a)
             return a
 
         def decoder_block(a, n_filters):
@@ -109,6 +112,9 @@ class Model:
         x = layers.Conv2D(filters=4000, kernel_size=(4, 4), padding='valid')(x)
         x = layers.BatchNormalization()(x)
         x = layers.LeakyReLU()(x)
+
+        if Config.use_normal_dropout:
+            x = layers.Dropout(rate=Config.normal_dropout_rate)(x)
 
         # Dense-to-Decoder Layer
         x = layers.Conv2DTranspose(filters=512, kernel_size=(4, 4), strides=(2, 2), padding='valid')(x)

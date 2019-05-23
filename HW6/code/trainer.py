@@ -49,7 +49,7 @@ class Trainer:
             self.model.fit(
                 self.train_dataset_tf,
                 epochs=n_epochs,
-                steps_per_epoch=self.train_dataset.num_batches,
+                steps_per_epoch=5*self.train_dataset.num_batches,
                 callbacks=self.callbacks,
                 validation_data=self.val_dataset_tf,
                 validation_steps=self.val_dataset.num_batches,
@@ -70,11 +70,34 @@ class Trainer:
             write_graph=True
         )
 
+        model_checkpoint_callback = keras.callbacks.ModelCheckpoint(
+            filepath=os.path.join(logdir, "model_{epoch:04d}-{loss:.3f}-{val_loss:.3f}-.hdf5"),
+            monitor="val_loss",
+            verbose=1,
+            save_best_only=True,
+            period=5,
+            save_weights_only=True)
+
+        early_stopping_callback = keras.callbacks.EarlyStopping(monitor='val_loss',
+                                                                patience=15,
+                                                                verbose=1)
+
+        reduce_lr_on_plateau_callback = keras.callbacks.ReduceLROnPlateau(monitor='loss',
+                                                                          factor=0.85,
+                                                                          patience=3,
+                                                                          min_delta=0.03,
+                                                                          min_lr=5e-7,
+                                                                          cooldown=3,
+                                                                          verbose=1)
+
         self.callbacks.append(tensorboard_callback)
+        self.callbacks.append(model_checkpoint_callback)
+        self.callbacks.append(early_stopping_callback)
+        self.callbacks.append(reduce_lr_on_plateau_callback)
 
     def show_prediction(self, epoch):
         """ Save prediction image every 50 epochs """
-        if epoch % 50 == 0:
+        if epoch % 10 == 0:
             # Use the model to predict the values from the training dataset.
             train_predictions = self.run_prediction(self.train_dataset_tf)
             val_predictions = self.run_prediction(self.val_dataset_tf)
@@ -112,7 +135,7 @@ class Trainer:
 
     def convert_to_img(self, np_array):
         img = np_array.copy()
-        img = (img*255.0) + 127.0
+        img *= 255.0
         img = np.maximum(np.minimum(255, img), 0)
         img = img.astype(np.uint8)
 
@@ -158,10 +181,10 @@ class Trainer:
             right = int((width + 64) / 2)
             bottom = int((height + 64) / 2)
 
-            full_gt[top:bottom, left:right, :] = gt
-            full_pred[top+7:bottom-7, left+7:right-7, :] = prediction[7:57, 7:57, :]
+            full_gt[top:bottom, left:right, :] = np.copy(gt)
+            full_pred[top+7:bottom-7, left+7:right-7, :] = np.copy(prediction[7:57, 7:57, :])
 
-        input_img = self.convert_to_img(input_img_array[0, :, :, :])
+        input_img = self.convert_to_img(input_img)
         full_gt = self.convert_to_img(full_gt)
         full_pred = self.convert_to_img(full_pred)
 

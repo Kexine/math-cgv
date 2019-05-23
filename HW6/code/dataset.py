@@ -4,12 +4,14 @@ import os
 import skimage
 import tensorflow as tf
 from config import Config
+import functools
 
 use_random_crop = Config.use_random_crop
 
 class Dataset:
 
-    def __init__(self, data_path):
+    def __init__(self, data_path, is_training_set=False):
+        self.is_training_set = is_training_set
         self.dataset_tf = None
         self.data = None
         self.mean = None
@@ -37,7 +39,7 @@ class Dataset:
                 img_name = os.path.basename(img_path)
                 
                 img = skimage.io.imread(img_path).astype(np.float32)
-                img = (img - 127.0) / 255.0  # should be zero centered as paper suggests
+                img /= 255.0
 
                 # Append to output list
                 data.append(img.astype(np.float32))
@@ -58,6 +60,9 @@ class Dataset:
             self.dataset_tf = self.dataset_tf.map(self.crop_random_img)
 
         self.dataset_tf = self.dataset_tf.shuffle(200)
+
+        if Config.use_random_augment and self.is_training_set:
+            self.dataset_tf = self.dataset_tf.map(functools.partial(self.random_augment), num_parallel_calls=8)
         self.dataset_tf = self.dataset_tf.batch(batch_size)
         self.dataset_tf = self.dataset_tf.repeat()            
 
@@ -76,7 +81,7 @@ class Dataset:
         bottom = int((height + 64) / 2)
 
         img_with_missing_crop = np.copy(self.data)
-        img_with_missing_crop[:, top+7:bottom-7, left+7:right-7, :] = 0.0
+        img_with_missing_crop[:, top+7:bottom-7, left+7:right-7, :] = Config.missing_patch_fill_value
         groundtruth_crop = np.copy(self.data[:, top:bottom, left:right, :])
 
         self.data = (img_with_missing_crop, groundtruth_crop)
@@ -90,3 +95,31 @@ class Dataset:
         (img_with_missing_crop, groundtruth_crop)
         """
         return (img_with_missing_crop, groundtruth_crop)
+
+
+    def random_augment(self, image, gt):
+
+        # left right flip
+        toss_flip = tf.random.uniform([], minval=0, maxval=1)
+        image = tf.cond(toss_flip > 0.5, lambda: tf.image.flip_left_right(image), lambda: image)
+        gt = tf.cond(toss_flip > 0.5, lambda: tf.image.flip_left_right(gt), lambda: gt)
+
+        # gaussian additive noise
+        toss_gauss = tf.random.uniform([], minval=0, maxval=1)
+        noise_image = tf.random_normal(shape=tf.shape(image), mean=0.0, stddev=0.03, dtype=tf.float32)
+        image = tf.cond(toss_gauss > 0.75, lambda: tf.add(image, noise_image), lambda: image)
+
+        # random color change
+        toss_color = tf.random.uniform([], minval=0, maxval=1)
+        random_hue = tf.random.uniform([], minval=0, maxval=0.1)
+        random_contrast = tf.random.uniform([], minval=0.5, maxval=1.5)
+        random_saturation = tf.random.uniform([], minval=0.5, maxval=1.5)
+        image = tf.cond(toss_color > 0.75, lambda: tf.image.adjust_hue(image, random_hue), lambda: image)
+        image = tf.cond(toss_color > 0.75, lambda: tf.image.adjust_contrast(image, random_contrast), lambda: image)
+        image = tf.cond(toss_color > 0.75, lambda: tf.image.adjust_saturation(image, random_saturation), lambda: image)
+        gt = tf.cond(toss_color > 0.75, lambda: tf.image.adjust_hue(gt, random_hue), lambda: gt)
+        gt = tf.cond(toss_color > 0.75, lambda: tf.image.adjust_contrast(gt, random_contrast), lambda: gt)
+        gt = tf.cond(toss_color > 0.75, lambda: tf.image.adjust_saturation(gt, random_saturation), lambda: gt)
+
+        return tuple([image, gt])
+
