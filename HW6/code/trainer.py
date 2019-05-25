@@ -183,6 +183,19 @@ class Trainer:
 
             full_gt[top:bottom, left:right, :] = np.copy(gt)
             full_pred[top+7:bottom-7, left+7:right-7, :] = np.copy(prediction[7:57, 7:57, :])
+        else:
+            is_cropped = input_img == 0.5
+            is_cropped = np.logical_and(np.logical_and(is_cropped[:, :, 0], is_cropped[:, :, 1]), is_cropped[:, :, 2])
+
+            row_locations, column_locations = np.where(is_cropped)
+
+            left = np.min(column_locations)
+            top = np.min(row_locations)
+            right = np.max(column_locations)
+            bottom = np.max(row_locations)
+
+            full_gt[top:bottom+1, left:right+1, :] = np.copy(gt[7:57, 7:57, :])
+            full_pred[top:bottom+1, left:right+1, :] = np.copy(prediction[7:57, 7:57, :])
 
         input_img = self.convert_to_img(input_img)
         full_gt = self.convert_to_img(full_gt)

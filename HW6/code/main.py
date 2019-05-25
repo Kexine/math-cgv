@@ -11,8 +11,6 @@ from model import Model
 from trainer import Trainer 
 from dataset import Dataset
 from config import Config
-import tensorflow.contrib.eager as tfe
-
 
 def main():
     train_data_path = '../dataset/train'
