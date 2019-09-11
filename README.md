@@ -17,10 +17,10 @@ Mathematical Foundations of Computer Graphics and Vision - ETHZ, Spring 2019
 [handout](./HW4/handout/hw4.pdf) - [report](./HW4/submission/README.pdf) 
   * Analyzing Sampling Patterns
   * Interactive Segmentation with Graph Cut
-* HW4 - RIGID TRANSFORM BLENDING AND VARIATIONAL METHODS\
+* HW5 - RIGID TRANSFORM BLENDING AND VARIATIONAL METHODS\
 [handout](./HW5/handout/hw5.pdf) - [report](./HW5/submission/README.pdf) 
   * Understanding and Utilizing Dual Quaternions
   * Variational Methods - Denoising problems
-* HW4 - NEURAL NETWORKS AND MACHINE LEARNING TECHNIQUES\
+* HW6 - NEURAL NETWORKS AND MACHINE LEARNING TECHNIQUES\
 [handout](./HW6/handout/hw6.pdf) - [report](./HW6/submission/README.pdf) 
   * Image inpainting using a neural network
