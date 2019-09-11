@@ -2,7 +2,9 @@
 Mathematical Foundations of Computer Graphics and Vision - ETHZ, Spring 2019
 
 HW1 - ROBUST ESTIMATION AND OPTIMIZATION
-[handout](./HW1/handout/hw1.pdf) [report](./HW1/submission/README.pdf)
+
+[handout](./HW1/handout/hw1.pdf) - [report](./HW1/submission/README.pdf)
+
    *RANSAC for circle fitting
    *IRLS and norms for line fitting
 
