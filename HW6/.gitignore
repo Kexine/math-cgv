@@ -1,7 +1,6 @@
 code/logs/
 dataset/
 *.zip
-cvpr16.pdf
 
 # Pycharm stuff
 .idea
