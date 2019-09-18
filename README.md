@@ -1,4 +1,4 @@
-# math-cgv
+# Exercises of math-cgv
 Mathematical Foundations of Computer Graphics and Vision - ETHZ, Spring 2019
 
 * HW1 - ROBUST ESTIMATION AND OPTIMIZATION\
